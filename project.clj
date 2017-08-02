@@ -1,4 +1,4 @@
-(defproject lux "0.1.0-beta"
+(defproject lux "0.1.1-beta"
 
   :description "A collection of tools to make life easier"
   :dependencies [
@@ -15,6 +15,7 @@
                   [ring/ring-anti-forgery "1.1.0"]
                   [metosin/ring-http-response "0.9.0"]
                   [buddy "1.1.0"] ;; authenication rules
+                  [markdown-clj "0.9.99"]
                 ]
   :min-lein-version "2.0.0"
   :source-paths ["src"]

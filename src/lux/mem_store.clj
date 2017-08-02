@@ -1,5 +1,4 @@
 (ns lux.mem-store
-  (:require [lux.routes :as routes])
   (:refer-clojure :exclude [get set]))
 
 (def ^:dynamic mem (atom {}))
