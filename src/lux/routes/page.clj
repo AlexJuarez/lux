@@ -1,6 +1,5 @@
-(ns lux.routes.core
+(ns lux.routes
   (:require
-    [schema.core :as s]
     [lux.schema]
     [compojure.api.sweet :refer :all]
     [compojure.api.common :refer [extract-parameters]]
@@ -8,26 +7,6 @@
     [lux.message :as message]
     [clojure.tools.logging :as log]
     [lux.error :as error]))
-
-(defn greater-than? [min]
-  (s/pred #(<= min (if (number? %) % (count %))) (list 'greater-than? min)))
-
-(defn less-than? [max]
-  (s/pred #(<= (if (number? %) % (count %)) max) (list 'less-than? max)))
-
-(defn in-range?
-  [min & [max]]
-  (if (nil? max)
-    (greater-than? min)
-    (s/both (greater-than? min) (less-than? max))))
-
-(defn is-alphanumeric?
-  []
-  (s/pred #(not (nil? (re-matches #"[A-Za-z0-9]+" %))) 'is-alphanumeric?))
-
-(defn not-empty?
-  []
-  (s/pred #(not (clojure.string/blank? %)) 'is-blank?))
 
 (defn page-route [route page Schema]
   (context
@@ -37,12 +16,6 @@
     (POST "/" []
           :form [info Schema]
           (page info))))
-
-(defmacro Str
-  ([] `(s/both String (not-empty?)))
-  ([max] `(s/both String (not-empty?) (less-than? ~max)))
-  ([min max] `(s/both String (not-empty?) (in-range? ~min ~max)))
-  ([min max & args] `(s/both String (not-empty?) (in-range? ~min ~max) ~@args)))
 
 (defmacro
   ^{:doc
@@ -91,5 +64,3 @@
                 result#
                 (layout/render ~template slug#))))
           (layout/render ~template slug# ~@args))))))
-
-

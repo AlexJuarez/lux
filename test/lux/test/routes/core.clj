@@ -1,5 +1,5 @@
 (ns lux.test.routes.core
-  (:require [lux.routes.core :refer :all]
+  (:require [lux.routes :refer :all]
             [clojure.test :refer :all]
             [lux.error :as error]
             [lux.layout :as layout]))
