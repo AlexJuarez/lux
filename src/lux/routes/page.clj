@@ -33,50 +33,57 @@
 (defn update-template [args body]
   (map #(apply-fns % args) body))
 
-(defmacro
-  ^{:doc
-    "Creates a page function, the macro expects page-name, key value options followed by a body
-    to execute on success.
-    (defpage test-page
-    :template [\"test-page.html\" {:hello \"world\"}]
-    :validator (fn [slug] ... )
-    :success \"Success message to display\")
+(defn prune [obj]
+  (if (and (vector? obj) (= (count obj) 2))
+    (let [[k v] obj]
+      (prn k v)
+      (if (nil? v)
+        nil
+        obj))
+    obj))
 
-    The output of this example would be the same as:
-    (defn test-page
-    ([] (layout/render \"test-page.html\" {:hello \"world\"}))
-    ([slug]
-    (validator slug)
-    (when (error/empty?)
-    (do (...))
-    (layout/render \"test-page.html\" slug {:hello \"world\"}))))
+(defn- render-page [obj opts]
+  (if-let [template (get opts :template)]
+    (assoc-in
+      obj [:fns :render]
+      (fn [& params] `(layout/render ~template ~@params)))
+    obj))
 
-    ### options:
+(defn- page-success [obj opts]
+  (if-let [success (get opts :success)]
+    (assoc-in
+      obj [:fns :success]
+      (fn [] `(message/success! ~success)))
+    obj))
 
-    - **:template**                 Define a template-path & args.
-    - **:validator**                Define a custom slug validator.
-    - **:success**                  Define a message to show on success.
-    "
-    }
-  defpage [page-name & body]
+(defn- page-validator [obj opts]
+  (if-let [validator (get opts :validator)]
+    (assoc-in
+      obj [:fns :validator]
+      (fn [& args] `(validator ~@args)))
+    obj))
+
+(defn- parse-options [page-name & body]
   (let [[params form] (extract-parameters body true)
-        [template & template-body] (get params :template)
-        args (get params :args)
-        validator `(get ~params :validator)
-        success `(get ~params :success)
-        redirect `(get ~params :redirect)]
-    `(defn ~page-name
-       ([~@`~args]
-         (layout/render ~template (update-template ~@args (list ~@template-body))))
-       ([slug# ~@`~args]
-        (when-not (nil? ~validator) (~validator slug#))
-        (if (error/empty?)
-          (do
-            (when-not (nil? ~success)
-              (message/success! ~success))
-            (let [result# (~@form slug#)]
-              (log/debug result#)
-              (if (not (nil? (get result# :body)))
-                result#
-                (layout/render ~template slug# (update-template ~@args (list ~@template-body))))))
-          (layout/render ~template slug# (update-template ~@args (list ~@template-body))))))))
+        [template & template-body] (get params :template)]
+    (clojure.walk/prewalk
+       prune
+       (-> {:page-name page-name
+            :template-path template
+            :template-body template-body
+            :body (apply list form)}
+           (render-page params)
+           (page-success params)
+           (page-validator params)
+           ))))
+
+(defn- resolve-page [options]
+  )
+
+(defmacro defpage [page-name & body]
+  `(let [options# (parse-options '~page-name ~@body)]
+     options#))
+
+(defpage test-page
+  :template ["test.html"]
+  :validator (fn [slug] (str "hello " slug)))
