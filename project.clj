@@ -17,6 +17,7 @@
                   [buddy "1.1.0"] ;; authenication rules
                   [markdown-clj "0.9.99"]
                 ]
+  :plugins [[lein-drip "0.1.1-SNAPSHOT"]]
   :min-lein-version "2.0.0"
   :source-paths ["src"]
   :test-paths ["test"]
