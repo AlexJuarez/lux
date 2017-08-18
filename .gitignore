@@ -2,3 +2,4 @@
 .nrepl-port
 pom.xml
 .lein-failures
+.lein-repl-history

@@ -8,22 +8,31 @@
   `(binding [error/*errors* (atom {})]
      ~@body))
 
-(defpage test-page
-  :template ["test.html" {:a "present"}])
+(defpage test-template-body
+  :template ["test.html" {:a "present" :function (fn [& args] (str "world")) :eval (str "hello")}])
 
-(defpage test-page-body
+(defpage test-page-results
   :template ["test.html" {:a "present"}]
   (fn [slug] {:body "test"}))
 
+(defpage test-validator-page
+  :template ["test.html" {:test "test"}]
+  :validator (fn [slug] (error/register! :slug slug)))
+
 (deftest defpage-test
-  (with-redefs [layout/render (fn [p & args] {:template p :args (apply merge args)})]
-    (bind-error
-      (is (= (get-in (test-page {:slug "slug"}) [:args :slug])))
-      (is (= (-> (test-page) :template) "test.html"))
-      (is (= (-> (test-page) :args :a) "present"))
-      (is (= (-> (test-page-body {}) :body) "test"))
-      )))
-
-
-
+  (with-redefs [layout/render (fn [p & args] {:template p :args (apply merge (flatten args))})]
+    (testing "defpage macro"
+      (testing "template body"
+        (bind-error
+          (is (= (get-in (test-template-body {:slug "slug"}) [:args :slug])))
+          (is (= (-> (test-template-body) :template) "test.html"))
+          (is (= (-> (test-template-body) :args :function) "world"))
+          (is (= (-> (test-template-body) :args :eval) (str "hello")))))
+      (testing "results"
+        (bind-error
+          (is (= (-> (test-page-results {}) :body) "test"))))
+      (testing "validator"
+        (bind-error
+          (is (= (-> (test-validator-page {:a 1}) :args :a) 1))
+          (is (= (first (error/get :slug)) {:a 1}) ))))))
 
