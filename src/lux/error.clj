@@ -3,6 +3,7 @@
   (:require [lux.exception :refer [request-validation]]))
 
 (declare ^:dynamic *errors*)
+(def ^:dynamic *errors* (atom {}))
 
 (defn put! [k v]
   (swap! *errors* #(assoc-in % [:errors k] v)))
