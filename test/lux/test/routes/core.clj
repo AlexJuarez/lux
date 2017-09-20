@@ -26,6 +26,11 @@
   :template ["test.html" {:test "test"}]
   :validator (fn [slug] (error/register! :slug slug)))
 
+(defpage test-args-page
+  :render render
+  :template ["test.html" {:test (fn [x] (str "hello " x))}]
+  :args [:x])
+
 (deftest defpage-test
   (testing "defpage macro"
     (testing "template body"
@@ -34,6 +39,10 @@
         (is (= (-> (test-template-body) :template) "test.html"))
         (is (= (-> (test-template-body) :args :function) "world"))
         (is (= (-> (test-template-body) :args :eval) (str "hello")))))
+    (testing "args"
+      (bind-error
+        (is (= (-> (test-args-page "alex") :args :test) "hello alex"))
+        (is (= (-> (test-args-page {} "alex") :args :test) "hello alex"))))
     (testing "results"
       (bind-error
         (is (= (-> (test-page-results {}) :body) "test"))))
