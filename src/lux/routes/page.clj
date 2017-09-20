@@ -8,14 +8,14 @@
     [clojure.tools.logging :as log]
     [lux.error :as error]))
 
-(defn page-route [route page Schema]
+(defn page-route [route page Schema & args]
   (context
     route []
     (GET "/" []
-         (page))
+         (apply page args))
     (POST "/" []
           :form [info Schema]
-          (page info))))
+          (apply page info args))))
 
 (defn resolvefn [obj args]
   (if (vector? obj)
@@ -93,7 +93,7 @@
               rs (apply params r)]
           (validator slug)
           (if (error/empty?)
-            (let [results (map #(% slug) body)
+            (let [results (map #(apply % slug r) body)
                   result (last results)]
               (success)
               (log/debug result)
