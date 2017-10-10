@@ -31,7 +31,10 @@
     lst))
 
 (defn update-template [args body]
-  (apply-fns body args))
+  (apply-fns
+    (apply merge
+           (map #(if (fn? %) (apply % args) %) body))
+    args))
 
 (defn prune [obj]
   (if (and (vector? obj) (= (count obj) 2))
@@ -70,7 +73,7 @@
     (clojure.walk/prewalk
        prune
        (-> {:template-path template
-            :template-body (apply merge (flatten template-body))
+            :template-body (flatten template-body)
             :args (get params :args)
             :render (get params :render layout/render)
             :body (apply list form)}
@@ -99,8 +102,8 @@
               (log/debug result)
               (if (and result (:body result))
                 result
-                (render slug rs)))
-            (render slug rs)))
+                (render rs slug)))
+            (render rs slug)))
         (render (apply params fargs)))
       )))
 
