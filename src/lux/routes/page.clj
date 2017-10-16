@@ -39,12 +39,6 @@
          (apply-fns % args)))
     (apply merge)))
 
-(defn prune [obj]
-  (if (and (vector? obj) (= (count obj) 2))
-    (let [[k v] obj]
-      (when-not (nil? v) obj))
-    obj))
-
 (defn- render-page [obj]
   (let [template-path (get obj :template-path)
         render (get obj :render)]
