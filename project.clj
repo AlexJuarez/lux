@@ -18,6 +18,7 @@
                   [markdown-clj "0.9.99"]
                 ]
   :plugins [[lein-drip "0.1.1-SNAPSHOT"]]
+  :profiles {:dev {:plugins [[com.jakemccrary/lein-test-refresh "0.21.1"]]}}
   :min-lein-version "2.0.0"
   :source-paths ["src"]
   :test-paths ["test"]
