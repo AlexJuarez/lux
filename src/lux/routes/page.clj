@@ -8,14 +8,14 @@
     [clojure.tools.logging :as log]
     [lux.error :as error]))
 
-(defn page-route [route page Schema & args]
+(defn page-route [route page Schema]
   (context
     route []
     (GET "/" []
-         (apply page args))
+         (page))
     (POST "/" []
           :form [info Schema]
-          (apply page info args))))
+          (page info))))
 
 (defn resolvefn [obj args]
   (if (vector? obj)
@@ -39,9 +39,15 @@
          (apply-fns % args)))
     (apply merge)))
 
+(defn prune [obj]
+  (if (and (vector? obj) (= (count obj) 2))
+    (let [[k v] obj]
+      (when-not (nil? v) obj))
+    obj))
+
 (defn- render-page [obj]
   (let [template-path (get obj :template-path)
-        render (get obj :render)]
+        render (get obj :render layout/render)]
     (fn [& params] (apply render template-path params))))
 
 (defn- page-success [obj]
@@ -59,14 +65,16 @@
 (defn parse-options [body]
   (let [[params form] (extract-parameters body true)
         [template & template-body] (get params :template)]
-    (->
-      params
-      (dissoc :template)
-      (assoc
-        :template-path template
-        :template-body template-body
-        :body (or (last form) (fn [& _] ))
-        ))))
+    (clojure.walk/prewalk
+      prune
+      (->
+        params
+        (dissoc :template)
+        (assoc
+          :template-path template
+          :template-body template-body
+          :body (or (last form) (fn [& _]))
+          )))))
 
 (defn resolve-page [fargs & body]
   (let [options (parse-options body)
