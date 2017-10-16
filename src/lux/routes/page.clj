@@ -54,7 +54,7 @@
 
 (defn- template-params [obj]
   (let [template-body (get obj :template-body ())]
-      (fn [& args] (update-template args template-body))))
+    (fn [& args] (update-template args template-body))))
 
 (defn parse-options [body]
   (let [[params form] (extract-parameters body true)
@@ -66,7 +66,7 @@
         :template-path template
         :template-body template-body
         :body (or (last form) (fn [& _] ))
-      ))))
+        ))))
 
 (defn resolve-page [fargs & body]
   (let [options (parse-options body)
